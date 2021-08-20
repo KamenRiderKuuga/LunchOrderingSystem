@@ -1,0 +1,6 @@
+.vscode
+.DS_Store
+.vs
+*.user
+bin
+obj

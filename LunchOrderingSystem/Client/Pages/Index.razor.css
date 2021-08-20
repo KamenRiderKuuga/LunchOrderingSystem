@@ -1,0 +1,29 @@
+﻿.nes-table.is-dark::before {
+    display: none !important;
+}
+
+.menu-area {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.menu-table {
+    margin: 20px;
+}
+
+#menu-title {
+    text-align: center;
+}
+
+.nes-btn {
+    padding: 0 6px;
+}
+
+.nes-table td, .nes-table th {
+    padding: 0 .5rem;
+}
+
+#name-search {
+    width: 25%;
+}

@@ -1,0 +1,8 @@
+﻿@font-face {
+    font-family: ZpixReviewLocal;
+    src: url(../assert/zpix.woff2);
+}
+
+html, body {
+    font-family: ZpixReviewLocal,'Helvetica Neue', Helvetica, Arial, sans-serif;
+}

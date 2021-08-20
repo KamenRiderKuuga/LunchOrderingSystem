@@ -1,0 +1,143 @@
+﻿@page "/"
+@using LunchOrderingSystem.Shared
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+
+@if (menuInfo == null)
+{
+    <p><em>正在加载菜单...</em></p>
+}
+else
+{
+    <div id="menu-title">
+        <h1>一品湘提前点餐内部系统</h1>
+        <p>准时发车</p>
+        <input type="text" id="name-search" class="nes-input" placeholder="请输入要搜索的菜名" @bind-value="inputValue" @bind-value:event="oninput" @onkeyup="onKeyUp">
+    </div>
+    <div class="menu-area">
+        @{int currentCount = 0;}
+        @while (currentCount < menuInfo.Length)
+        {
+            if (currentCount % 22 == 0)
+            {
+                <table class="nes-table is-bordered is-dark menu-table">
+                    <thead>
+                        <tr>
+                            <th>菜名</th>
+                            <th>价格</th>
+                            <th>点菜</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @while (true)
+                        {
+                            <tr>
+                                <td>@menuInfo[currentCount].Name </td>
+                                <td>@menuInfo[currentCount].Price </td>
+                                @{int index = currentCount;}
+                                <td><button class="@(@menuInfo[currentCount].PickByMyself ? "nes-btn is-success" : @menuInfo[currentCount].HasBeenPick? "nes-btn is-disabled" : "nes-btn is-primary")" @onclick="arg => showModal(menuInfo[index])">@(@menuInfo[currentCount].PickByMyself ? "取消" : @menuInfo[currentCount].HasBeenPick? "已点" : "点菜")</button></td>
+                            </tr>
+                            currentCount++;
+                            if (currentCount % 22 == 0 || currentCount == menuInfo.Length)
+                            {
+                                break;
+                            }
+                        }
+                    </tbody>
+                </table>
+            }
+        }
+    </div>
+
+    <dialog class="nes-dialog" id="dialog-default">
+        <div>
+            <p class="title">点菜确认框</p>
+            <p>@msg</p>
+            <menu class="dialog-menu">
+                <button class="nes-btn" @onclick="hideModal">@cancelBtnText</button>
+                <button hidden="@hideConfirmBtn" class="nes-btn is-primary" @onclick="args => confirmSelect(args)">想好了</button>
+            </menu>
+        </div>
+    </dialog>
+}
+
+@code{
+    private MenuItem[] menuInfo;
+    private MenuItem[] allMenuInfo;
+    private string inputValue = string.Empty;
+    private MenuItem selectedItem;
+    private bool hideConfirmBtn;
+    private string cancelBtnText = string.Empty;
+    private string msg = "确认要点这个菜吗？";
+
+    protected override async Task OnInitializedAsync()
+    {
+        allMenuInfo = await Http.GetFromJsonAsync<MenuItem[]>("Menu");
+        menuInfo = allMenuInfo;
+    }
+
+    private async Task onKeyUp(KeyboardEventArgs e)
+    {
+        await SearchData(inputValue);
+    }
+
+    private async Task SearchData(string name)
+    {
+        allMenuInfo = await Http.GetFromJsonAsync<MenuItem[]>("Menu");
+        menuInfo = allMenuInfo.Where(item => item.Name.Contains(name)).ToArray();
+    }
+
+    private async Task showModal(MenuItem menu)
+    {
+        hideConfirmBtn = false;
+        cancelBtnText = "我再想想";
+        selectedItem = menu;
+
+        if (menu.HasBeenPick)
+        {
+            if (menu.PickByMyself)
+            {
+                msg = "是否取消点餐？";
+                await JS.InvokeAsync<object>("showModal");
+            }
+        }
+        else
+        {
+            msg = "确认要点这个菜吗？";
+            await JS.InvokeAsync<object>("showModal");
+        }
+    }
+
+    private async Task hideModal()
+    {
+        await JS.InvokeAsync<object>("hideModal");
+    }
+
+    private async Task confirmSelect(EventArgs args)
+    {
+        ResponseResult result = null;
+
+        if (selectedItem.PickByMyself)
+        {
+            result = await (await Http.DeleteAsync($"Menu?menuId={selectedItem.ID}")).Content.ReadFromJsonAsync<ResponseResult>();
+        }
+        else
+        {
+            var data = new Order { Id = selectedItem.ID };
+            result = await (await Http.PostAsJsonAsync("Menu", data)).Content.ReadFromJsonAsync<ResponseResult>();
+        }
+
+        if (result?.Success == true)
+        {
+            await hideModal();
+            await SearchData(inputValue);
+        }
+        else
+        {
+            hideConfirmBtn = true;
+            cancelBtnText = "好的";
+            msg = result.Msg;
+        }
+    }
+}
