@@ -19,7 +19,7 @@ else
         @{int currentCount = 0;}
         @while (currentCount < menuInfo.Length)
         {
-            if (currentCount % 22 == 0)
+            if (currentCount % 23 == 0)
             {
                 <table class="nes-table is-bordered is-dark menu-table">
                     <thead>
@@ -39,7 +39,7 @@ else
                                 <td><button class="@(@menuInfo[currentCount].PickByMyself ? "nes-btn is-success" : @menuInfo[currentCount].HasBeenPick? "nes-btn is-disabled" : "nes-btn is-primary")" @onclick="arg => showModal(menuInfo[index])">@(@menuInfo[currentCount].PickByMyself ? "取消" : @menuInfo[currentCount].HasBeenPick? "已点" : "点菜")</button></td>
                             </tr>
                             currentCount++;
-                            if (currentCount % 22 == 0 || currentCount == menuInfo.Length)
+                            if (currentCount % 23 == 0 || currentCount == menuInfo.Length)
                             {
                                 break;
                             }
