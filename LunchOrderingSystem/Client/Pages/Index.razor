@@ -1,5 +1,7 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.SignalR.Client
 @using LunchOrderingSystem.Shared
+@inject NavigationManager NavigationManager
 @inject HttpClient Http
 @inject IJSRuntime JS
 
@@ -70,12 +72,32 @@ else
     private bool hideConfirmBtn;
     private string cancelBtnText = string.Empty;
     private string msg = "确认要点这个菜吗？";
+    private HubConnection hubConnection;
+    private string userId = Guid.NewGuid().ToString();
 
     protected override async Task OnInitializedAsync()
     {
         allMenuInfo = await Http.GetFromJsonAsync<MenuItem[]>("Menu");
         menuInfo = allMenuInfo;
+
+        hubConnection = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/menuhub")).Build();
+
+        hubConnection.On<string>("ReceiveMessage", async (user) =>
+        {
+            if (user != userId)
+            {
+                await SearchData(inputValue);
+                StateHasChanged();
+            }
+        });
+
+        await hubConnection.StartAsync();
     }
+
+    async Task Notify() =>
+        await hubConnection.SendAsync("SendMessage", userId);
+
+    public bool IsConnected => hubConnection.State == HubConnectionState.Connected;
 
     private async Task onKeyUp(KeyboardEventArgs e)
     {
@@ -132,6 +154,7 @@ else
         {
             await hideModal();
             await SearchData(inputValue);
+            await Notify();
         }
         else
         {

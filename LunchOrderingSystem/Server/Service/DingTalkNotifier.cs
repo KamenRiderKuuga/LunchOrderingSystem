@@ -51,7 +51,7 @@ namespace LunchOrderingSystem.Server.Service
                 _todayNotified = true;
             }
 
-            if (!_todaySentOrder && DateTime.Now.Hour == 12 && DateTime.Now.Minute == 20)
+            if (!_todaySentOrder && DateTime.Now.Hour == 12 && DateTime.Now.Minute == 15)
             {
                 using var scope = _services.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<MenuDbContext>();
