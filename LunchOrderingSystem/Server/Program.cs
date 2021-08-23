@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using LunchOrderingSystem.Server.Service;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace LunchOrderingSystem.Server
@@ -15,6 +17,9 @@ namespace LunchOrderingSystem.Server
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
+                }).ConfigureServices(services =>
+                {
+                    services.AddHostedService<DingTalkNotifier>();
                 });
     }
 }
