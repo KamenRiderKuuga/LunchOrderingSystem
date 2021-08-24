@@ -56,8 +56,9 @@ namespace LunchOrderingSystem.Server.Service
                 using var scope = _services.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<MenuDbContext>();
                 var dingTalkCaller = scope.ServiceProvider.GetRequiredService<DingTalkCaller>();
-                var orderContent = dbContext.OrderInfo.Where(item => item.OrderTime.Date == DateTime.Today).ToListAsync();
-                await dingTalkCaller.SendTextMsgAsync(string.Join("\n", orderContent), true);
+                var orderContent = await dbContext.OrderInfo.Where(item => item.OrderTime.Date == DateTime.Today).Select(item => item.MenuId).ToListAsync();
+                var orderList = LazyStaticResources.MenuInfoData.Where(item => orderContent.Contains(item.ID)).Select(item => item.Name).ToList();
+                await dingTalkCaller.SendTextMsgAsync(string.Join("\n", orderList), true);
                 _todaySentOrder = true;
             }
         }
